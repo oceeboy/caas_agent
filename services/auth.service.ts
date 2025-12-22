@@ -142,8 +142,8 @@ export async function fetchUserDetails() {
   //   );
 
   try {
-    const res = await http.get('auth/profile', {});
-    const data = (await res) as AuthUser;
+    const res = await httplogin.get('auth/profile');
+    const data: UserTypes.User = await res.json();
     return data;
   } catch (error) {
     console.log('error', error);
