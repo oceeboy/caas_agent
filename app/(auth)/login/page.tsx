@@ -33,6 +33,7 @@ export default function LoginPage() {
       const res = await login(data);
       if (res.success) {
         toast.success('Login successful!');
+        console.log('res', res);
         setAuthenticatedSession({
           user: res.user,
           accessToken: res.access_token,

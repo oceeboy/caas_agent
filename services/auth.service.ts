@@ -21,19 +21,10 @@ export type LoginResponse = {
 };
 
 // Persist tokens (basic localStorage; replace with secure storage if needed)
-function persistTokens(
-  accessToken: string,
-  refreshToken: string,
-) {
+function persistTokens(accessToken: string, refreshToken: string) {
   try {
-    localStorage.setItem(
-      'access_token',
-      accessToken,
-    );
-    localStorage.setItem(
-      'refresh_token',
-      refreshToken,
-    );
+    localStorage.setItem('access_token', accessToken);
+    localStorage.setItem('refresh_token', refreshToken);
   } catch (e) {
     // storage not available (SSR or disabled)
   }
@@ -41,10 +32,7 @@ function persistTokens(
 
 export async function login(dto: LoginRequest) {
   try {
-    const res = await httplogin.post(
-      'auth/login',
-      { json: dto },
-    );
+    const res = await httplogin.post('auth/login', { json: dto });
 
     const result = await res.json();
     const data = result as {
@@ -53,8 +41,7 @@ export async function login(dto: LoginRequest) {
       refresh_token: string;
     };
 
-    const { user, access_token, refresh_token } =
-      data;
+    const { user, access_token, refresh_token } = data;
 
     // Save tokens for subsequent requests (used by utils/http.ts)
     // persistTokens(access_token, refresh_token); // will be used in http.ts
@@ -70,24 +57,18 @@ export async function login(dto: LoginRequest) {
     };
   } catch (error) {
     console.log('error', error);
-    const isUnauthorized =
-      error instanceof Error &&
-      (error as any).response?.status === 401;
+    const isUnauthorized = error instanceof Error && (error as any).response?.status === 401;
 
     return {
       success: false,
-      message: isUnauthorized
-        ? 'Invalid email or password'
-        : 'An error occurred while logging in',
+      message: isUnauthorized ? 'Invalid email or password' : 'An error occurred while logging in',
     };
   }
 }
 
 export async function logout() {}
 
-export async function getNewAccessToken(
-  refresh_token: string,
-) {
+export async function getNewAccessToken(refresh_token: string) {
   try {
     const res = await http.post(
       'auth/refresh-token',
@@ -107,16 +88,12 @@ export async function getNewAccessToken(
     // persistTokens(access_token, refresh_token);
     return access_token;
   } catch (error) {
-    throw new Error(
-      'An error occurred while refreshing token',
-    );
+    throw new Error('An error occurred while refreshing token');
   }
 }
 
 export async function refreshToken() {
-  const refresh_token = localStorage.getItem(
-    'refresh_token',
-  );
+  const refresh_token = localStorage.getItem('refresh_token');
 
   if (!refresh_token) {
     return {
@@ -143,9 +120,7 @@ export async function refreshToken() {
     persistTokens(access_token, refresh_token);
   } catch (error) {
     console.log('error', error);
-    throw new Error(
-      'An error occurred while refreshing token',
-    );
+    throw new Error('An error occurred while refreshing token');
   }
 }
 
@@ -164,16 +139,11 @@ export async function fetchUserDetails() {
   //   );
 
   try {
-    const res = await http.get(
-      'auth/profile',
-      {},
-    );
+    const res = await http.get('auth/profile', {});
     const data = (await res) as AuthUser;
     return data;
   } catch (error) {
     console.log('error', error);
-    throw new Error(
-      'An error occurred while fetching user details',
-    );
+    throw new Error('An error occurred while fetching user details');
   }
 }
