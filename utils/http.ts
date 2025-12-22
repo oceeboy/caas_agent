@@ -3,6 +3,8 @@ export interface FetchOptions
   baseURL?: string;
   timeout?: number;
   retries?: number;
+  // When true, will attempt token refresh on 401 once and retry
+  authRetry?: boolean;
 }
 
 export class HttpClient {
@@ -17,6 +19,24 @@ export class HttpClient {
     this.defaultHeaders = headers;
   }
 
+  // Attach Authorization header from localStorage if present
+  private withAuthHeader(
+    headers?: HeadersInit,
+  ): HeadersInit {
+    try {
+      const token = localStorage.getItem(
+        'access_token',
+      );
+      if (token) {
+        return {
+          ...(headers ?? {}),
+          Authorization: `Bearer ${token}`,
+        };
+      }
+    } catch {}
+    return headers ?? {};
+  }
+
   private async request<T>(
     url: string,
     options: FetchOptions = {},
@@ -25,6 +45,7 @@ export class HttpClient {
       baseURL = this.baseURL,
       timeout = 8000,
       retries = 0,
+      authRetry = true,
       ...rest
     } = options;
     const fullUrl = baseURL
@@ -39,6 +60,7 @@ export class HttpClient {
 
     try {
       let attempt = 0;
+      let refreshed = false;
       while (true) {
         try {
           const res = await fetch(fullUrl, {
@@ -46,9 +68,45 @@ export class HttpClient {
             signal: controller.signal,
             headers: {
               ...this.defaultHeaders,
-              ...rest.headers,
+              ...this.withAuthHeader(
+                rest.headers,
+              ),
             },
           });
+
+          if (
+            res.status === 401 &&
+            authRetry &&
+            !refreshed
+          ) {
+            // Try refresh once
+            const refreshToken = (() => {
+              try {
+                return localStorage.getItem(
+                  'refresh_token',
+                );
+              } catch {
+                return null;
+              }
+            })();
+            if (refreshToken) {
+              try {
+                const { refreshAccessToken } =
+                  await import(
+                    '@/utils/auth.utils'
+                  );
+                const newAccess =
+                  await refreshAccessToken(
+                    refreshToken,
+                  );
+                if (newAccess) {
+                  refreshed = true;
+                  // retry the original request once with new token
+                  continue;
+                }
+              } catch {}
+            }
+          }
 
           if (!res.ok)
             throw new Error(
@@ -129,10 +187,5 @@ export class HttpClient {
   }
 }
 
-// Example usage:
-// export const api = new HttpClient(
-//   'https://api.example.com',
-//   {
-//     Authorization: 'Bearer token',
-//   },
-// );
+// Same-origin API client using Next.js rewrites (/api/*)
+// export const api = new HttpClient('/api');

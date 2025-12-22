@@ -11,6 +11,7 @@ import * as z from 'zod';
 import { useAuthStore } from '@/store/auth.store';
 import type { LoginResponse } from '@/services/auth.service';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/context/auth-provider';
 
 const loginSchema = z.object({
   email: z
@@ -35,28 +36,18 @@ export default function LoginPage() {
     resolver: zodResolver(loginSchema),
   });
 
-  const setSession = useAuthStore(
-    (s) => s.setSession,
-  );
+  //   const setSession = useAuthStore(
+  //     (s) => s.setSession,
+  //   );
 
   async function onSubmit(data: LoginData) {
     try {
-      const res = (await login(
-        data,
-      )) as LoginResponse;
-      if (
-        !res?.user ||
-        !res?.access_token ||
-        !res?.refresh_token
-      ) {
-        throw new Error('Invalid login response');
+      const res = await login(data);
+      if (res.success) {
+        toast.success('Login successful!');
+      } else if (!res.success) {
+        toast.error('Login failed');
       }
-      setSession({
-        user: res.user,
-        access_token: res.access_token,
-        refresh_token: res.refresh_token,
-      });
-      toast.success('Login successful!');
     } catch (e: any) {
       const message =
         e?.message ?? 'Login failed';
@@ -64,33 +55,12 @@ export default function LoginPage() {
     }
   }
 
-  async function refreshTokenNow() {
-    const result = await refreshToken();
-    console.log('Refresh token result:', result);
-  }
-
-  async function fetchUserData() {
-    const result = await fetchUserDetails();
-    console.log(
-      'Fetch user data result:',
-      result,
-    );
-  }
-
   return (
     <>
       <h1 className="text-2xl font-bold text-black mb-4">
         Sign in
       </h1>
-      <Button onClick={refreshTokenNow}>
-        testing refresh_token
-      </Button>
-      <Button
-        className="mx-2 mt-5 mb-3"
-        onClick={fetchUserData}
-      >
-        fetch user data
-      </Button>
+
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="space-y-4"

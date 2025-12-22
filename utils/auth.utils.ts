@@ -64,7 +64,7 @@ export function middlewareGuard(
 //   matcher: ["/dashboard/:path*", "/settings/:path*"],
 // };
 
-async function refreshAccessToken(
+export async function refreshAccessToken(
   refreshToken: string,
 ): Promise<string | null> {
   try {

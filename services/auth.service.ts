@@ -1,4 +1,5 @@
 import { http } from '@/lib/http';
+import httplogin from '@/lib/ky';
 import { checkUserAuthenticated } from '@/utils/auth.utils';
 
 export type LoginRequest = {
@@ -37,14 +38,17 @@ function persistTokens(
 
 export async function login(dto: LoginRequest) {
   try {
-    const res = await http.post(
+    const res = await httplogin.post(
       'auth/login',
-      dto,
+      {
+        json: dto,
+      },
     );
     //   const data = (await res.json()) as LoginResponse;
     //   console.log('res', res);
 
-    const data = (await res) as LoginResponse;
+    const result = await res.json();
+    const data = result as LoginResponse;
 
     const { user, access_token, refresh_token } =
       data;
@@ -114,6 +118,34 @@ export async function login(dto: LoginRequest) {
 
 export async function logout() {}
 
+export async function getNewAccessToken(
+  refresh_token: string,
+) {
+  try {
+    const res = await http.post(
+      'auth/refresh-token',
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${refresh_token}`,
+        },
+      },
+    );
+    const data = (await res) as {
+      access_token: string;
+    };
+    const { access_token } = data;
+
+    // Update stored access token
+    // persistTokens(access_token, refresh_token);
+    return access_token;
+  } catch (error) {
+    throw new Error(
+      'An error occurred while refreshing token',
+    );
+  }
+}
+
 export async function refreshToken() {
   const refresh_token = localStorage.getItem(
     'refresh_token',
@@ -153,23 +185,22 @@ export async function refreshToken() {
 // get user info
 
 export async function fetchUserDetails() {
-  const isAuthenticated =
-    await checkUserAuthenticated();
-  if (!isAuthenticated) {
-    // this is meant to force the caller to handle unauthenticated state to redirect to login
-    throw new Error('User is not authenticated');
-  }
+  //   const isAuthenticated =
+  //     await checkUserAuthenticated();
+  //   if (!isAuthenticated) {
+  //     // this is meant to force the caller to handle unauthenticated state to redirect to login
+  //     throw new Error('User is not authenticated');
+  //   }
 
-  const access_token = localStorage.getItem(
-    'access_token',
-  );
+  //   const access_token = localStorage.getItem(
+  //     'access_token',
+  //   );
 
   try {
-    const res = await http.get('auth/profile', {
-      headers: {
-        Authorization: `Bearer ${access_token}`,
-      },
-    });
+    const res = await http.get(
+      'auth/profile',
+      {},
+    );
     const data = (await res) as AuthUser;
     return data;
   } catch (error) {

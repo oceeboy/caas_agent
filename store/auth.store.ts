@@ -3,8 +3,11 @@ import {
   persist,
   createJSONStorage,
 } from 'zustand/middleware';
-import http from '@/lib/ky';
-import { login as loginApi } from '@/services/auth.service';
+import {
+  login as loginApi,
+  refreshToken as refreshAccessToken,
+  fetchUserDetails,
+} from '@/services/auth.service';
 import type {
   AuthUser,
   LoginRequest,
@@ -21,7 +24,7 @@ export type AuthState = {
   hasRole: (roles: string | string[]) => boolean;
 
   // Actions
-  login: (dto: LoginRequest) => Promise<void>;
+  login: (dto: LoginRequest) => Promise<boolean>;
   logout: () => void;
   refresh: () => Promise<void>;
   setSession: (
@@ -30,7 +33,7 @@ export type AuthState = {
       'user' | 'access_token' | 'refresh_token'
     >,
   ) => void;
-  hydrateFromLegacyStorage: () => void; // reads tokens saved by older code (access_token, refresh_token)
+  hydrateFromLegacyStorage: () => Promise<void>; // reads tokens from localStorage and populates user
 };
 
 export const useAuthStore = create<AuthState>()(
@@ -59,12 +62,20 @@ export const useAuthStore = create<AuthState>()(
       },
 
       login: async (dto) => {
-        const data = await loginApi(dto);
+        const result = await loginApi(dto);
+        if (!result?.success) {
+          //   throw new Error(
+          //     (result as any)?.message ||
+          //       'Login failed',
+          //   );
+          return false;
+        }
         set({
-          user: data.user,
-          accessToken: data.access_token,
-          refreshToken: data.refresh_token,
+          user: result.user,
+          accessToken: result.access_token,
+          refreshToken: result.refresh_token,
         });
+        return true;
       },
 
       logout: () => {
@@ -82,26 +93,29 @@ export const useAuthStore = create<AuthState>()(
       },
 
       refresh: async () => {
-        const token = get().refreshToken;
-        if (!token) return;
+        // Attempt to refresh using service (updates localStorage tokens)
         try {
-          const res = await http.post(
-            'auth/refresh',
-            { json: { refresh_token: token } },
+          await refreshAccessToken();
+        } catch {
+          // ignore, we'll re-read below
+        }
+        try {
+          const at = localStorage.getItem(
+            'access_token',
           );
-          const data =
-            (await res.json()) as Partial<LoginResponse> & {
-              access_token: string;
-            };
-          set((s) => ({
-            user: data.user ?? s.user,
-            accessToken: data.access_token,
-            refreshToken:
-              data.refresh_token ??
-              s.refreshToken,
-          }));
-        } catch (e) {
-          // On refresh failure, clear session
+          if (at) {
+            set((s) => ({
+              accessToken: at,
+              refreshToken: s.refreshToken,
+            }));
+          } else {
+            set({
+              user: null,
+              accessToken: null,
+              refreshToken: null,
+            });
+          }
+        } catch {
           set({
             user: null,
             accessToken: null,
@@ -110,7 +124,7 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      hydrateFromLegacyStorage: () => {
+      hydrateFromLegacyStorage: async () => {
         try {
           const at = localStorage.getItem(
             'access_token',
@@ -118,12 +132,47 @@ export const useAuthStore = create<AuthState>()(
           const rt = localStorage.getItem(
             'refresh_token',
           );
-          if (at || rt)
+          if (at || rt) {
             set({
               accessToken: at,
               refreshToken: rt,
             });
-        } catch {}
+            // Try to fetch user profile with the current/updated token
+            try {
+              const profile =
+                await fetchUserDetails();
+              set((s) => ({
+                user: profile ?? s.user,
+              }));
+            } catch {
+              // If profile fails, try refresh once and retry profile
+              try {
+                await refreshAccessToken();
+                const at2 = localStorage.getItem(
+                  'access_token',
+                );
+                set((s) => ({
+                  accessToken:
+                    at2 ?? s.accessToken,
+                }));
+                const profile2 =
+                  await fetchUserDetails();
+                set((s) => ({
+                  user: profile2 ?? s.user,
+                }));
+              } catch {
+                // give up, clear session
+                set({
+                  user: null,
+                  accessToken: null,
+                  refreshToken: null,
+                });
+              }
+            }
+          }
+        } catch {
+          // storage unavailable
+        }
       },
     }),
     {
