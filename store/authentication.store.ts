@@ -75,6 +75,7 @@ export const useAuthenticationStore = create<AuthenticationState>()(
 
       function startAutoRefresh() {
         // check if truly running then return
+
         if (autoRefreshInterval) return; // already running
         autoRefreshInterval = setInterval(
           async () => {
@@ -98,7 +99,6 @@ export const useAuthenticationStore = create<AuthenticationState>()(
       // cross-tab logout sync
       if (typeof window !== 'undefined') {
         window.addEventListener('storage', (event) => {
-          console.log('Storage event detected, checking for logout');
           if (event.key === 'auth-storage' && event.newValue === null) {
             // another tab logged out, clear here too
             set({
@@ -196,7 +196,7 @@ export const useAuthenticationStore = create<AuthenticationState>()(
           // and update the store with the new tokens
           try {
             // making an API call to refresh the access token
-            const newAccessToken = await fetch(`/api/refresh-token`, {
+            const newAccessToken = await fetch(`/api/auth/refresh-token`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
