@@ -85,6 +85,48 @@ export const useAuthenticationStore =
           );
         }
 
+        // auto-refresh on window focus
+        if (typeof window !== 'undefined') {
+          window.addEventListener('focus', () => {
+            get().refreshSessionIfNeeded();
+            // startAutoRefresh(); // can't hurt to ensure it's running but not strictly needed
+          });
+        }
+
+        /** cross-tab communication */
+        if (typeof window !== 'undefined') {
+          window.addEventListener(
+            'storage',
+            (event) => {
+              if (event.key === 'access_token') {
+                get().refreshSessionIfNeeded();
+              }
+            },
+          );
+        }
+
+        // cross-tab logout sync
+        if (typeof window !== 'undefined') {
+          window.addEventListener(
+            'storage',
+            (event) => {
+              if (
+                event.key === 'auth-storage' &&
+                event.newValue === null
+              ) {
+                // another tab logged out, clear here too
+                set({
+                  currentUser: null,
+                  accessToken: null,
+                  refreshToken: null,
+                  accessTokenExpiresAt: null,
+                  refreshTokenExpiresAt: null,
+                });
+              }
+            },
+          );
+        }
+
         return {
           currentUser: null,
           accessToken: null,
