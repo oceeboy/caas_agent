@@ -89,20 +89,8 @@ export const useAuthenticationStore =
         if (typeof window !== 'undefined') {
           window.addEventListener('focus', () => {
             get().refreshSessionIfNeeded();
-            // startAutoRefresh(); // can't hurt to ensure it's running but not strictly needed
+            startAutoRefresh(); // can't hurt to ensure it's running but not strictly needed
           });
-        }
-
-        /** cross-tab communication */
-        if (typeof window !== 'undefined') {
-          window.addEventListener(
-            'storage',
-            (event) => {
-              if (event.key === 'access_token') {
-                get().refreshSessionIfNeeded();
-              }
-            },
-          );
         }
 
         // cross-tab logout sync
@@ -187,6 +175,7 @@ export const useAuthenticationStore =
                 currentTime +
                 7 * 24 * 60 * 60 * 1000,
             });
+            startAutoRefresh();
           },
           clearSession: () => {
             set({
