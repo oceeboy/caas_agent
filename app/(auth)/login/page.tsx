@@ -38,7 +38,7 @@ export default function LoginPage() {
           user: res.user,
           accessToken: res.access_token,
           refreshToken: res.refresh_token,
-          expiresInSeconds: 3600, // assuming 1 hour expiry; replace with actual value if available
+          expiresInSeconds: res.expiresInSeconds,
         });
         router.push('/dashboard');
       } else if (!res.success) {

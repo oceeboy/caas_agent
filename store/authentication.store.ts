@@ -148,12 +148,16 @@ export const useAuthenticationStore = create<AuthenticationState>()(
         }) => {
           // we extract the data from the input
           const { user, accessToken, refreshToken, expiresInSeconds } = data;
+          // current time for expiry calculations
           const currentTime = Date.now();
           set({
             currentUser: user,
             accessToken: accessToken,
             refreshToken: refreshToken,
-            accessTokenExpiresAt: currentTime + expiresInSeconds * 1000,
+            // calculate exact expiry times
+            accessTokenExpiresAt:
+              currentTime +
+              (expiresInSeconds && expiresInSeconds > 0 ? expiresInSeconds : 900) * 1000,
             // assuming refresh token lasts 7 days
             refreshTokenExpiresAt: currentTime + 7 * 24 * 60 * 60 * 1000,
           });

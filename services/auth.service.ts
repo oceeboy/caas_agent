@@ -18,6 +18,7 @@ export type LoginResponse = {
   user: AuthUser;
   access_token: string;
   refresh_token: string;
+  expiresInSeconds: number;
 };
 
 // Persist tokens (basic localStorage; replace with secure storage if needed)
@@ -39,9 +40,10 @@ export async function login(dto: LoginRequest) {
       user: UserTypes.User;
       access_token: string;
       refresh_token: string;
+      expiresInSeconds: number;
     };
 
-    const { user, access_token, refresh_token } = data;
+    const { user, access_token, refresh_token, expiresInSeconds } = data;
 
     // Save tokens for subsequent requests (used by utils/http.ts)
     // persistTokens(access_token, refresh_token); // will be used in http.ts
@@ -54,6 +56,7 @@ export async function login(dto: LoginRequest) {
       user,
       access_token,
       refresh_token,
+      expiresInSeconds,
     };
   } catch (error) {
     console.log('error', error);
