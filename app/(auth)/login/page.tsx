@@ -10,15 +10,8 @@ import { useRouter } from 'next/navigation';
 import { useAuthenticationStore } from '@/store/authentication.store';
 
 const loginSchema = z.object({
-  email: z
-    .string()
-    .email('Invalid email address'),
-  password: z
-    .string()
-    .min(
-      6,
-      'Password must be at least 6 characters',
-    ),
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
 type LoginData = z.infer<typeof loginSchema>;
@@ -34,8 +27,7 @@ export default function LoginPage() {
 
   const router: AppRouterInstance = useRouter();
 
-  const { setAuthenticatedSession } =
-    useAuthenticationStore();
+  const { setAuthenticatedSession } = useAuthenticationStore();
   async function onSubmit(data: LoginData) {
     try {
       const res = await login(data);
@@ -53,27 +45,18 @@ export default function LoginPage() {
         router.push('/login');
       }
     } catch (e: any) {
-      const message =
-        e?.message ?? 'Login failed';
+      const message = e?.message ?? 'Login failed';
       toast.error(message);
     }
   }
 
   return (
     <>
-      <h1 className="text-2xl font-bold text-black mb-4">
-        Sign in
-      </h1>
+      <h1 className="text-2xl font-bold text-black mb-4">Sign in</h1>
 
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="space-y-4"
-      >
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-1">
-          <label
-            htmlFor="email"
-            className="block text-sm font-medium text-black"
-          >
+          <label htmlFor="email" className="block text-sm font-medium text-black">
             Email
           </label>
           <input
@@ -84,18 +67,11 @@ export default function LoginPage() {
             aria-invalid={!!errors.email}
             {...register('email')}
           />
-          {errors.email && (
-            <p className="text-xs text-black/70">
-              {errors.email.message}
-            </p>
-          )}
+          {errors.email && <p className="text-xs text-black/70">{errors.email.message}</p>}
         </div>
 
         <div className="space-y-1">
-          <label
-            htmlFor="password"
-            className="block text-sm font-medium text-black"
-          >
+          <label htmlFor="password" className="block text-sm font-medium text-black">
             Password
           </label>
           <input
@@ -106,11 +82,7 @@ export default function LoginPage() {
             aria-invalid={!!errors.password}
             {...register('password')}
           />
-          {errors.password && (
-            <p className="text-xs text-black/70">
-              {errors.password.message}
-            </p>
-          )}
+          {errors.password && <p className="text-xs text-black/70">{errors.password.message}</p>}
         </div>
 
         <button
