@@ -1,5 +1,8 @@
 import { http } from '@/lib/http';
 import httplogin from '@/lib/ky';
+// import { useAuthenticationStore } from '@/store/authentication.store';
+// import { useAuthStore } from '@/store/auth.store';
+import type { UserTypes } from '@/types';
 import { checkUserAuthenticated } from '@/utils/auth.utils';
 
 export type LoginRequest = {
@@ -40,21 +43,24 @@ export async function login(dto: LoginRequest) {
   try {
     const res = await httplogin.post(
       'auth/login',
-      {
-        json: dto,
-      },
+      { json: dto },
     );
-    //   const data = (await res.json()) as LoginResponse;
-    //   console.log('res', res);
 
     const result = await res.json();
-    const data = result as LoginResponse;
+    const data = result as {
+      user: UserTypes.User;
+      access_token: string;
+      refresh_token: string;
+    };
 
     const { user, access_token, refresh_token } =
       data;
 
-    // Save tokens for subsequent requests
-    persistTokens(access_token, refresh_token);
+    // Save tokens for subsequent requests (used by utils/http.ts)
+    // persistTokens(access_token, refresh_token); // will be used in http.ts
+
+    // Do NOT call Zustand hooks or store setters here to avoid invalid hook calls.
+    // Let the UI layer call setSession after invoking login.
 
     return {
       success: true,
@@ -75,46 +81,7 @@ export async function login(dto: LoginRequest) {
         : 'An error occurred while logging in',
     };
   }
-  // Save tokens for subsequent requests
-  //   persistTokens(data.access_token, data.refresh_token);
-
-  //   return data;
 }
-
-// export async function login(dto: LoginRequest) {
-//   try {
-//     const result = await http.post('auth/login', {
-//       json: dto,
-//       timeout: 30000,
-//     });
-//     //   const data = (await result.json()) as LoginResponse;
-
-//     const { user, access_token, refresh_token } =
-//       (await result.json()) as LoginResponse;
-
-//     // Save tokens for subsequent requests
-//     persistTokens(access_token, refresh_token);
-
-//     return {
-//       success: true,
-//       user,
-//       access_token,
-//       refresh_token,
-//     };
-//   } catch (error) {
-//     console.error(error);
-//     const isUnauthorized =
-//       error instanceof HTTPError &&
-//       error.response?.status === 401;
-
-//     return {
-//       success: false,
-//       message: isUnauthorized
-//         ? 'Invalid email or password'
-//         : 'An error occurred while logging in',
-//     };
-//   }
-// }
 
 export async function logout() {}
 

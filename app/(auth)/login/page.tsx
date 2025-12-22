@@ -1,17 +1,13 @@
 'use client';
-import {
-  fetchUserDetails,
-  login,
-  refreshToken,
-} from '@/services';
+import { login } from '@/services';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as z from 'zod';
-import { useAuthStore } from '@/store/auth.store';
-import type { LoginResponse } from '@/services/auth.service';
-import { Button } from '@/components/ui/button';
-import { useAuth } from '@/context/auth-provider';
+
+import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
+import { useRouter } from 'next/navigation';
+import { useAuthenticationStore } from '@/store/authentication.store';
 
 const loginSchema = z.object({
   email: z
@@ -36,17 +32,25 @@ export default function LoginPage() {
     resolver: zodResolver(loginSchema),
   });
 
-  //   const setSession = useAuthStore(
-  //     (s) => s.setSession,
-  //   );
+  const router: AppRouterInstance = useRouter();
 
+  const { setAuthenticatedSession } =
+    useAuthenticationStore();
   async function onSubmit(data: LoginData) {
     try {
       const res = await login(data);
       if (res.success) {
         toast.success('Login successful!');
+        setAuthenticatedSession({
+          user: res.user,
+          accessToken: res.access_token,
+          refreshToken: res.refresh_token,
+          expiresInSeconds: 3600, // assuming 1 hour expiry; replace with actual value if available
+        });
+        router.push('/dashboard');
       } else if (!res.success) {
         toast.error('Login failed');
+        router.push('/login');
       }
     } catch (e: any) {
       const message =
