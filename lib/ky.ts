@@ -1,6 +1,6 @@
 import ky from 'ky';
 
-// Same-origin API base (proxied via Next.js rewrites)
+// Same-origin API base (proxied via Next.js rewrites) // check next.config.ts for details
 const API_BASE_URL = 'api/';
 const AUTH_STORAGE_KEY = 'auth-storage';
 
