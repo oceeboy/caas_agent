@@ -1,13 +1,13 @@
 'use client';
 import { useAuthenticationStore } from '@/store/authentication.store';
-import { redirect } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   const user = useAuthenticationStore((state) => state.currentUser);
   const isValid = useAuthenticationStore((state) => state.isSessionValid());
   const hydrated = useAuthenticationStore((state) => state.hydrated);
-
+  const redirect = useRouter();
   // Render nothing until hydrated to avoid flicker
   // if (!hydrated) return null;
   // if valid and user exists, render children
@@ -15,7 +15,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   // Don't redirect until store is hydrated
   useEffect(() => {
     if (hydrated && (isValid || user)) {
-      redirect('/dashboard'); // client-side redirect
+      redirect.replace('/dashboard'); // client-side redirect
     }
   }, [hydrated, isValid, user, redirect]);
 
