@@ -14,6 +14,9 @@ const http = baseClient.extend({
     beforeRequest: [
       (request) => {
         try {
+          if (request.url.endsWith('/auth/login') || request.url.endsWith('/auth/register')) {
+            return; // skip adding auth header for login/register
+          }
           const raw = typeof window !== 'undefined' ? localStorage.getItem(AUTH_STORAGE_KEY) : null;
           const persisted = raw ? JSON.parse(raw) : null;
           const accessToken: string | undefined = persisted?.state?.accessToken;
