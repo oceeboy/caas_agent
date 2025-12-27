@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   // Middleware logic here
   //   const response = new NextResponse('Middleware response');
   //   return response;
@@ -13,6 +13,12 @@ export function middleware(req: NextRequest) {
 
 function handleDashboardMiddleware(req: NextRequest) {
   // LOGIC FOR DASHBOARD ROUTE GOES HERE
+
+  // rate limiting
+
+  const { pathname } = req.nextUrl;
+  // Example response for demonstration purposes
+  // return new NextResponse(`Dashboard middleware response for ${pathname}`);
 
   return NextResponse.next();
 }
