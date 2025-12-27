@@ -1,4 +1,5 @@
 import ky from 'ky';
+import { NextResponse } from 'next/server';
 
 // Same-origin API base (proxied via Next.js rewrites) // check next.config.ts for details
 const API_BASE_URL = 'api/';
@@ -27,6 +28,18 @@ const http = baseClient.extend({
         } catch {
           // ignore storage/JSON errors
         }
+      },
+    ],
+    afterResponse: [
+      async (request, _options, response) => {
+        // Global response handling can be added here
+        if (response.status === 401) {
+          // Handle unauthorized access globally if needed
+          const loginUrl = new URL('/login', request.url);
+          loginUrl.searchParams.set('redirect', request.url);
+          return NextResponse.redirect(loginUrl);
+        }
+        return response;
       },
     ],
   },
