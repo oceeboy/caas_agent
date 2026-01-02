@@ -79,6 +79,7 @@ export const useAuthenticationStore = create<AuthenticationState>()(
         if (autoRefreshInterval) return; // already running
         autoRefreshInterval = setInterval(
           async () => {
+            console.log('auto stater');
             await get().refreshSessionIfNeeded();
           },
           30_000, // every 30 seconds
@@ -88,9 +89,7 @@ export const useAuthenticationStore = create<AuthenticationState>()(
       // auto-refresh on window focus
       if (typeof window !== 'undefined') {
         window.addEventListener('focus', () => {
-          // console.log(
-          //   'Window focused, checking token refresh',
-          // );
+          console.log('Window focused, checking token refresh');
           get().refreshSessionIfNeeded();
           startAutoRefresh(); // can't hurt to ensure it's running but not strictly needed
         });
@@ -101,6 +100,7 @@ export const useAuthenticationStore = create<AuthenticationState>()(
         window.addEventListener('storage', (event) => {
           if (event.key === 'auth-storage' && event.newValue === null) {
             // another tab logged out, clear here too
+            console.log('auth-storage null now');
             set({
               currentUser: null,
               accessToken: null,

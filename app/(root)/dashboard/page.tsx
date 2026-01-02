@@ -1,8 +1,10 @@
 'use client';
 import { UserHooks } from '@/hooks';
+import { AgentAuthService } from '@/services';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import { z } from 'zod';
 
 // ==================================
@@ -39,9 +41,16 @@ function AgentContentDashboard() {
   });
 
   const [agentSuccess, setAgentSuccess] = useState(false);
-  function onSubmit(data: z.infer<typeof agentLoginSchema>) {
-    console.log('Agent form submitted:', data);
-    setAgentSuccess(true);
+  const { loginAgentDetails } = AgentAuthService;
+
+  async function onSubmit(data: z.infer<typeof agentLoginSchema>) {
+    const result = await loginAgentDetails(data);
+    if (result) {
+      toast.success('Agent information submitted successfully!');
+      setAgentSuccess(true);
+    } else {
+      toast.error('Failed to submit agent information.');
+    }
   }
   return (
     <>

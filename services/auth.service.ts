@@ -150,3 +150,27 @@ export async function fetchUserDetails() {
     throw new Error('An error occurred while fetching user details');
   }
 }
+
+type AgentLoginData = {
+  agentName: string;
+  agentEmail: string;
+};
+type AgentLoginResponse = {
+  token: string;
+  expiresIn: number;
+  message: string;
+};
+
+export class AgentAuthService {
+  static async loginAgentDetails(data: AgentLoginData): Promise<AgentLoginResponse> {
+    try {
+      const res = await httplogin.post('agent/create', { json: data });
+      const result: AgentLoginResponse = await res.json();
+      return result;
+    } catch (e) {
+      console.log('error', e);
+      throw new Error('An error occurred while logging in agent');
+    }
+  }
+  static async fetchAgentDetails() {}
+}

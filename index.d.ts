@@ -1,10 +1,9 @@
 declare module '@/services' {
-  export function login(
-    data: LoginData,
-  ): Promise<LoginResponse>;
+  export function login(data: LoginData): Promise<LoginResponse>;
   export function fetchUserDetails(): Promise<AuthUser>;
   export function refreshToken(): Promise<RefreshTokenResponse>;
-  export function getNewAccessToken(
-    refreshToken: string,
-  ): Promise<string | null>;
+  export function getNewAccessToken(refreshToken: string): Promise<string | null>;
+  export class AgentAuthService {
+    static loginAgentDetails(data: AgentLoginData): Promise<AgentLoginResponse>;
+  }
 }
