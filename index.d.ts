@@ -6,4 +6,7 @@ declare module '@/services' {
   export class AgentAuthService {
     static loginAgentDetails(data: AgentLoginData): Promise<AgentLoginResponse>;
   }
+  export class ConversationService {
+    static getConversations(): Promise<Conversation[]>;
+  }
 }
