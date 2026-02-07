@@ -1,6 +1,6 @@
 'use client';
 import { Button } from '@/components/ui/button';
-import { ConversationHooks } from '@/hooks';
+
 import { AgentAuthService } from '@/services';
 import { useAgentAuthenticationStore } from '@/store/agent-authentication.store';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -15,9 +15,6 @@ import { z } from 'zod';
 
 export default function AgentRootLayout({ children }: { children: React.ReactNode }) {
   const { isTokenValid, token } = useAgentAuthenticationStore();
-
-  const { conversations, errorMessage, isLoading } = ConversationHooks.useConversations();
-  console.log('conversations', conversations, errorMessage, isLoading);
 
   if (!isTokenValid()) {
     return (
