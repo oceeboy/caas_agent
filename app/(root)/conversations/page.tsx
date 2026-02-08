@@ -16,6 +16,9 @@ import {
 } from '@/components/ui/dialog';
 import type { ConversationTypes } from '@/types';
 import { toast } from 'sonner';
+import { useForm } from 'react-hook-form';
+import { agentRegisterSchema, type AgentRegisterData } from '@/schemas';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 export default function ConversationsPage() {
   const { conversations, errorMessage, isLoading } = ConversationHooks.useConversations();
@@ -201,9 +204,16 @@ function AgentJoinConversationModal({
     onClose();
   };
 
+  const [registerAgent, setRegisterAgent] = useState<boolean>(false);
+
+  function handleRegister() {
+    setRegisterAgent(true);
+    // onClose();
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md ">
         <DialogHeader>
           <DialogTitle>Join as Agent</DialogTitle>
           <DialogDescription>Select an agent to join the conversation.</DialogDescription>
@@ -227,7 +237,91 @@ function AgentJoinConversationModal({
           <Button variant="destructive" onClick={onClose}>
             Cancel
           </Button>
+          <Button className="ml-2.5" onClick={handleRegister}>
+            Add Agent
+          </Button>
         </DialogFooter>
+        {registerAgent && (
+          <RegisterAgentModal isOpen={registerAgent} onClose={() => setRegisterAgent(false)} />
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function RegisterAgentModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  const {
+    register,
+    handleSubmit,
+
+    formState: { errors, isSubmitting },
+    reset,
+  } = useForm<AgentRegisterData>({
+    resolver: zodResolver(agentRegisterSchema),
+  });
+
+  const { registerAgent } = AgentHooks.useRegisterAgent();
+  function onSubmit(data: AgentRegisterData) {
+    registerAgent(data, {
+      onSuccess: () => {
+        toast.success('Agent registered successfully!');
+        reset();
+        onClose();
+      },
+      onError: (error: any) => {
+        const message = error?.message ?? 'Failed to register agent.';
+        toast.error(message);
+      },
+    });
+  }
+  return (
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-md ">
+        <DialogHeader>
+          <DialogTitle>Register new Agent</DialogTitle>
+          <DialogDescription>
+            Add a new agent to your organization. This agent will be able to join conversations.
+          </DialogDescription>
+        </DialogHeader>
+
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="mt-4 space-y-4 animate-in fade-in-50 slide-in-from-bottom-3 duration-300"
+        >
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-muted-foreground">Agent name</label>
+            <input
+              {...register('agentName')}
+              placeholder="e.g. Jude Lewis"
+              className="w-full rounded-md border bg-background px-3 py-2 text-sm shadow-sm transition focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+            {errors.agentName && (
+              <p className="text-xs text-destructive">{errors.agentName.message}</p>
+            )}
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-muted-foreground">Agent email</label>
+            <input
+              {...register('agentEmail')}
+              type="email"
+              placeholder="jude@company.com"
+              className="w-full rounded-md border bg-background px-3 py-2 text-sm shadow-sm transition focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+            {errors.agentEmail && (
+              <p className="text-xs text-destructive">{errors.agentEmail.message}</p>
+            )}
+          </div>
+
+          <DialogFooter className="pt-2">
+            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Registering…' : 'Register agent'}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );
