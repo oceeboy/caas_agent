@@ -23,10 +23,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <AgentRootLayout>
-      <div className="min-h-screen bg-gray-50 flex p-6">
-        <main className="w-full max-w-4xl bg-white border border-gray-200 rounded-lg shadow-md p-8">
-          {children}
-        </main>
+      <div className="min-h-screen bg-gray-50 ">
+        <main className="w-full  bg-white   p-8">{children}</main>
       </div>
     </AgentRootLayout>
   );
