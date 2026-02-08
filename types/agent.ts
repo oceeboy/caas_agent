@@ -4,3 +4,14 @@ export type Agent = {
   agentEmail: string;
   role: string;
 };
+
+export type RegisterAgentResponse = {
+  message: string;
+  agentId: string;
+};
+
+export type ErrorResponse = {
+  message: string;
+  error: string;
+  statusCode: number;
+};

@@ -11,5 +11,6 @@ declare module '@/services' {
   }
   export class AgentService {
     static getAgents(): Promise<Agent[]>;
+    static registerAgent(newAgent: AgentRegisterData): Promise<Agent>;
   }
 }
