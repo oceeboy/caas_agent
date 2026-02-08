@@ -1,6 +1,6 @@
 'use client';
 
-import { ConversationHooks } from '@/hooks';
+import { AgentHooks, ConversationHooks } from '@/hooks';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import type { ConversationTypes } from '@/types';
+import { toast } from 'sonner';
 
 export default function ConversationsPage() {
   const { conversations, errorMessage, isLoading } = ConversationHooks.useConversations();
@@ -127,8 +128,10 @@ function ConversationDetailModal({
   isOpen: boolean;
   onClose: () => void;
 }) {
+  const [isAgentModal, setIsAgentModal] = useState<boolean>(false);
   function handleJoin() {
     console.log('Joining conversation:', conversationId);
+    setIsAgentModal(true);
     onClose();
   }
 
@@ -138,31 +141,91 @@ function ConversationDetailModal({
   }
 
   return (
+    <>
+      <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Conversation details</DialogTitle>
+            <DialogDescription>
+              Review this conversation before joining as an agent.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 text-sm">
+            <div className="rounded-md border bg-muted/40 px-3 py-2 font-mono text-xs">
+              {conversationId}
+            </div>
+
+            <p className="text-muted-foreground">
+              By joining, you’ll be able to send and receive messages from the visitor in real time.
+            </p>
+          </div>
+
+          <DialogFooter className=" gap-2 sm:gap-0">
+            <Button variant="outline" onClick={handleClose}>
+              Cancel
+            </Button>
+            <Button className="ml-2.5" onClick={handleJoin}>
+              Join conversation
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AgentJoinConversationModal
+        conversationId={conversationId}
+        isOpen={isAgentModal}
+        onClose={() => setIsAgentModal(false)}
+      />
+    </>
+  );
+}
+
+function AgentJoinConversationModal({
+  conversationId,
+  isOpen,
+  onClose,
+}: {
+  conversationId: string;
+  isOpen: boolean;
+  onClose: () => void;
+}) {
+  const {
+    agents,
+    errorMessage: agentErrorMessage,
+    isLoading: isAgentLoading,
+  } = AgentHooks.useAgents();
+
+  const handleJoin = (agentId: string) => {
+    toast.success(`Joining conversation: ${conversationId} as agent: ${agentId}`);
+    onClose();
+  };
+
+  return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Conversation details</DialogTitle>
-          <DialogDescription>
-            Review this conversation before joining as an agent.
-          </DialogDescription>
+          <DialogTitle>Join as Agent</DialogTitle>
+          <DialogDescription>Select an agent to join the conversation.</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 text-sm">
-          <div className="rounded-md border bg-muted/40 px-3 py-2 font-mono text-xs">
-            {conversationId}
-          </div>
-
-          <p className="text-muted-foreground">
-            By joining, you’ll be able to send and receive messages from the visitor in real time.
-          </p>
+          {isAgentLoading && <p>Loading agents...</p>}
+          {agentErrorMessage && <p className="text-red-500">{agentErrorMessage}</p>}
+          <ul>
+            {agents?.map((agent) => (
+              <li key={agent.agentId}>
+                <Button variant="outline" onClick={() => handleJoin(agent.agentId)}>
+                  {agent.agentName} ({agent.agentEmail})
+                </Button>
+              </li>
+            ))}
+          </ul>
         </div>
 
         <DialogFooter className=" gap-2 sm:gap-0">
-          <Button variant="outline" onClick={handleClose}>
+          <Button variant="destructive" onClick={onClose}>
             Cancel
-          </Button>
-          <Button className="ml-2.5" onClick={handleJoin}>
-            Join conversation
           </Button>
         </DialogFooter>
       </DialogContent>
