@@ -9,3 +9,13 @@ export interface Conversation {
 }
 
 export type ConversationStatus = 'pending' | 'open' | 'closed';
+
+export type ErrorResponse = {
+  message: string;
+  error: string;
+  statusCode: number;
+};
+
+export type JoinConversationResponse = {
+  message: string;
+};

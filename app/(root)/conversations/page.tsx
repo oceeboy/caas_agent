@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useState } from 'react';
+import { Loader2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -199,12 +200,31 @@ function AgentJoinConversationModal({
     isLoading: isAgentLoading,
   } = AgentHooks.useAgents();
 
-  const handleJoin = (agentId: string) => {
-    toast.success(`Joining conversation: ${conversationId} as agent: ${agentId}`);
-    onClose();
-  };
-
+  const { joinConversation, isJoining } = ConversationHooks.useJoinConversation();
   const [registerAgent, setRegisterAgent] = useState<boolean>(false);
+  const [joiningAgentId, setJoiningAgentId] = useState<string | null>(null);
+
+  const handleJoin = (agentId: string) => {
+    setJoiningAgentId(agentId);
+
+    const payload: { agentId: string; conversationId: string } = {
+      agentId,
+      conversationId,
+    };
+
+    joinConversation(payload, {
+      onSuccess: (data) => {
+        toast.success(data.message ?? 'Agent Joined Successfuly');
+        setJoiningAgentId(null);
+        onClose();
+      },
+      onError: (error: any) => {
+        const message = error?.message ?? 'Failed to join conversation.';
+        toast.error(message);
+        setJoiningAgentId(null);
+      },
+    });
+  };
 
   function handleRegister() {
     setRegisterAgent(true);
@@ -225,8 +245,19 @@ function AgentJoinConversationModal({
           <ul>
             {agents?.map((agent) => (
               <li key={agent.agentId}>
-                <Button variant="outline" onClick={() => handleJoin(agent.agentId)}>
-                  {agent.agentName} ({agent.agentEmail})
+                <Button
+                  variant="outline"
+                  disabled={isJoining && joiningAgentId === agent.agentId}
+                  onClick={() => handleJoin(agent.agentId)}
+                >
+                  <span className="flex items-center gap-2">
+                    <span>
+                      {agent.agentName} ({agent.agentEmail})
+                    </span>
+                    {joiningAgentId === agent.agentId && isJoining && (
+                      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                    )}
+                  </span>
                 </Button>
               </li>
             ))}

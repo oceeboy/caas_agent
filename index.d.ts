@@ -8,6 +8,9 @@ declare module '@/services' {
   }
   export class ConversationService {
     static getConversations(): Promise<Conversation[]>;
+    static joinConversation(
+      joinConversationData: JoinConversationData,
+    ): Promise<JoinConversationResponse>;
   }
   export class AgentService {
     static getAgents(): Promise<Agent[]>;
