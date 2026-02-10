@@ -15,3 +15,9 @@ export type ErrorResponse = {
   error: string;
   statusCode: number;
 };
+
+export type AgentSessionResponse = {
+  token: string;
+  message: string;
+  expiresIn: number;
+};

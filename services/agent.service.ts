@@ -56,4 +56,23 @@ export class AgentService {
       );
     }
   }
+
+  static async startAgentSession({ agentId }: { agentId: string }) {
+    try {
+      const res = await http.post(`agent/session/${agentId}`);
+      const data: AgentTypes.AgentSessionResponse = await res.json();
+      console.log('Session agent:', data);
+      return data;
+    } catch (error) {
+      if (error instanceof HTTPError) {
+        const message = await this.parseErrorResponse(error.response);
+        throw new Error(message);
+      }
+      throw new Error(
+        error instanceof Error
+          ? error.message
+          : 'An unexpected error occurred while starting agent session.',
+      );
+    }
+  }
 }

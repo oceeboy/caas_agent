@@ -70,3 +70,30 @@ export const useRegisterAgent = () => {
     isSuccess,
   };
 };
+
+export const useStartAgentSession = () => {
+  const queryClient = useQueryClient();
+  const { mutate, isPending, isError, isSuccess, error } = useMutation<
+    Awaited<ReturnType<typeof AgentService.startAgentSession>>,
+    unknown,
+    { agentId: string }
+  >({
+    mutationFn: (agentId) => AgentService.startAgentSession(agentId),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['useAgents'] }),
+        queryClient.invalidateQueries({ queryKey: ['useConversations'] }),
+      ]);
+    },
+  });
+
+  const errorMessage =
+    isError && error ? (error instanceof Error ? error.message : String(error)) : null;
+  return {
+    startSessiont: mutate,
+    isLoading: isPending,
+    isError,
+    errorMessage,
+    isSuccess,
+  };
+};
