@@ -90,7 +90,7 @@ export const useStartAgentSession = () => {
   const errorMessage =
     isError && error ? (error instanceof Error ? error.message : String(error)) : null;
   return {
-    startSessiont: mutate,
+    startSession: mutate,
     isLoading: isPending,
     isError,
     errorMessage,

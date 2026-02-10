@@ -17,7 +17,8 @@ export type ErrorResponse = {
 };
 
 export type AgentSessionResponse = {
+  agent: Agent;
   token: string;
-  message: string;
   expiresIn: number;
+  message: string;
 };

@@ -10,13 +10,8 @@ export type User = {
 };
 
 export type AgentUser = {
-  _id: string;
+  agentId: string;
   agentName: string;
   agentEmail: string;
-  handleBy: string;
-  orgId: string;
-  role: 'admin' | 'agent';
-  // Timestamps
-  createdAt?: Date;
-  updatedAt?: Date;
+  role: string;
 };
