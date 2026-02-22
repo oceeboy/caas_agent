@@ -57,4 +57,23 @@ export class ConversationService {
       );
     }
   }
+
+  static async getConversationById({ conversationId }: { conversationId: string }) {
+    try {
+      const res = await http.get(`conversations/${conversationId}`);
+      const data: ConversationTypes.Conversation = await res.json();
+      console.log('Fetched conversation:', data);
+      return data;
+    } catch (error) {
+      if (error instanceof HTTPError) {
+        const message = await this.parseErrorResponse(error.response);
+        throw new Error(message);
+      }
+      throw new Error(
+        error instanceof Error
+          ? error.message
+          : 'An unexpected error occurred while fetching the conversation.',
+      );
+    }
+  }
 }

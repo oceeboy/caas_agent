@@ -2,7 +2,7 @@ import ky from 'ky';
 import { NextResponse } from 'next/server';
 
 // Same-origin API base (proxied via Next.js rewrites) // check next.config.ts for details
-const API_BASE_URL = 'api/';
+const API_BASE_URL = '/api/'; //
 const AUTH_STORAGE_KEY = 'auth-storage';
 
 const baseClient = ky.create({
